@@ -171,6 +171,8 @@ class SignatureXmlValidator extends Signature implements LoadFromXmlInterface, S
     private function getAlgorithm()
     {
         $xpath = new \DOMXPath($this->signature->sigNode instanceof \DOMDocument ? $this->signature->sigNode : $this->signature->sigNode->ownerDocument);
+        $xpath->registerNamespace('ds', \XMLSecurityDSig::XMLDSIGNS);
+
         $list = $xpath->query('./ds:SignedInfo/ds:SignatureMethod', $this->signature->sigNode);
         if ($list->length == 0) {
             throw new InvalidXmlException('Missing SignatureMethod element');
