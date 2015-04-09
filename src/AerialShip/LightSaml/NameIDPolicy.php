@@ -9,7 +9,8 @@ final class NameIDPolicy
     const TRANSIENT = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient';
     const EMAIL = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
     const SHIB_NAME_ID = 'urn:mace:shibboleth:1.0:nameIdentifier';
-
+    const UNSPECIFIED = 'urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified';
+    const ENCRYPTED = 'urn:oasis:names:tc:SAML:2.0:nameid-format:encrypted';
 
     private static $_constants = null;
 
