@@ -20,7 +20,7 @@ class AuthnRequest extends AbstractRequest
 
 
     /** @var string */
-    protected $nameIdPolicyFormat = NameIDPolicy::PERSISTENT;
+    protected $nameIdPolicyFormat;
 
     /** @var bool */
     protected $nameIdPolicyAllowCreate = true;
@@ -144,21 +144,26 @@ class AuthnRequest extends AbstractRequest
     function loadFromXml(\DOMElement $xml) {
         parent::loadFromXml($xml);
 
-        $this->checkRequiredAttributes($xml, array('AssertionConsumerServiceURL', 'ProtocolBinding'));
         $this->setAssertionConsumerServiceURL($xml->getAttribute('AssertionConsumerServiceURL'));
         $this->setProtocolBinding($xml->getAttribute('ProtocolBinding'));
 
-        $this->iterateChildrenElements($xml, function(\DOMElement $node) {
+        $signatureNode = null;
+
+        $this->iterateChildrenElements($xml, function(\DOMElement $node) use (&$signatureNode) {
             if ($node->localName == 'NameIDPolicy' && $node->namespaceURI == Protocol::SAML2) {
                 $this->checkRequiredAttributes($node, array('Format', 'AllowCreate'));
                 $this->setNameIdPolicyFormat($node->getAttribute('Format'));
                 $this->setNameIdPolicyAllowCreate($node->getAttribute('AllowCreate') == 'true');
             } else if ($node->localName == 'Signature' && $node->namespaceURI == Protocol::NS_XMLDSIG) {
-                $signature = new SignatureXmlValidator();
-                $signature->loadFromXml($node);
-                $this->setSignature($signature);
+                $signatureNode = $node;
             }
         });
+
+        if ($signatureNode) {
+            $signature = new SignatureXmlValidator();
+            $signature->loadFromXml($signatureNode);
+            $this->setSignature($signature);
+        }
     }
 
 }

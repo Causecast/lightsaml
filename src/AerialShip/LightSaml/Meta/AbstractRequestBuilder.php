@@ -2,14 +2,12 @@
 
 namespace AerialShip\LightSaml\Meta;
 
-use AerialShip\LightSaml\Bindings;
 use AerialShip\LightSaml\Error\BuildRequestException;
 use AerialShip\LightSaml\Model\Metadata\EntityDescriptor;
 use AerialShip\LightSaml\Model\Metadata\IdpSsoDescriptor;
-use AerialShip\LightSaml\Model\Metadata\Service\AssertionConsumerService;
 use AerialShip\LightSaml\Model\Metadata\SpSsoDescriptor;
 use AerialShip\LightSaml\Model\Protocol\Message;
-use AerialShip\LightSaml\Protocol;
+use AerialShip\LightSaml\Model\XmlDSig\Signature;
 
 
 abstract class AbstractRequestBuilder
@@ -24,18 +22,22 @@ abstract class AbstractRequestBuilder
     /** @var \AerialShip\LightSaml\Meta\SpMeta */
     protected $spMeta;
 
+    /** @var Signature */
+    protected $signature;
 
 
     /**
      * @param EntityDescriptor $edSP
      * @param EntityDescriptor $edIDP
      * @param SpMeta $spMeta
+     * @param Signature $signature
      */
-    public function __construct(EntityDescriptor $edSP, EntityDescriptor $edIDP, SpMeta $spMeta)
+    public function __construct(EntityDescriptor $edSP, EntityDescriptor $edIDP, SpMeta $spMeta, Signature $signature = null)
     {
         $this->edSP = $edSP;
         $this->edIDP = $edIDP;
         $this->spMeta = $spMeta;
+        $this->signature = $signature;
     }
 
 
@@ -74,7 +76,21 @@ abstract class AbstractRequestBuilder
         return $this->edSP;
     }
 
+    /**
+     * @param Signature $signature
+     */
+    public function setSigningProvider($signature)
+    {
+        $this->signature = $signature;
+    }
 
+    /**
+     * @return Signature
+     */
+    public function getSigningProvider()
+    {
+        return $this->signature;
+    }
 
 
     /**
@@ -122,26 +138,25 @@ abstract class AbstractRequestBuilder
 
 
     /**
-     * @return AssertionConsumerService
-     * @throws BuildRequestException
+     * @param \AerialShip\LightSaml\Model\Metadata\Service\AbstractService[] $services
+     * @param string|null $binding
+     * @return \AerialShip\LightSaml\Model\Metadata\Service\AbstractService|null
      */
-    protected function getAssertionConsumerService()
+    protected function findServiceByBinding(array $services, $binding)
     {
-        $sp = $this->getSpSsoDescriptor();
-        $arr = $sp->findAssertionConsumerServices();
-        if (empty($arr)) {
-            throw new BuildRequestException('SPSSODescriptor has not AssertionConsumerService');
-        }
         $result = null;
-        foreach ($arr as $asc) {
-            if (Bindings::getBindingProtocol($asc->getBinding()) == Protocol::SAML2) {
-                $result = $asc;
-                break;
+        if (!$binding) {
+            $result = array_shift($services);
+        } else {
+            foreach ($services as $service) {
+                if ($binding == $service->getBinding()) {
+                    $result = $service;
+                    break;
+                }
             }
         }
-        if (!$result) {
-            throw new BuildRequestException('SPSSODescriptor has no SAML2 AssertionConsumerService');
-        }
+
         return $result;
     }
+
 } 

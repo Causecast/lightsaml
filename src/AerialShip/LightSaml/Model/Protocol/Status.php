@@ -21,6 +21,15 @@ class Status implements GetXmlInterface, LoadFromXmlInterface
     protected $message;
 
 
+    /**
+     * @param StatusCode|null $statusCode
+     * @param string $message
+     */
+    public function __construct(StatusCode $statusCode = null, $message = null)
+    {
+        $this->statusCode = $statusCode;
+        $this->message = $message;
+    }
 
     /**
      * @param \AerialShip\LightSaml\Model\Protocol\StatusCode $statusCode
@@ -83,7 +92,7 @@ class Status implements GetXmlInterface, LoadFromXmlInterface
         $result = $context->getDocument()->createElementNS(Protocol::SAML2, 'samlp:Status');
         $parent->appendChild($result);
 
-        $this->getStatusCode()->getXml($result, $context);
+        $result->appendChild($this->getStatusCode()->getXml($result, $context));
 
         if ($this->getMessage()) {
             $statusMessageNode = $context->getDocument()->createElementNS(Protocol::SAML2, 'samlp:StatusMessage', $this->getMessage());

@@ -92,12 +92,14 @@ class SubjectConfirmation implements GetXmlInterface, LoadFromXmlInterface
     function getXml(\DOMNode $parent, SerializationContext $context) {
         $this->prepareForXml();
 
-        $result = $context->getDocument()->createElement('SubjectConfirmation');
+        $result = $context->getDocument()->createElementNS(Protocol::NS_ASSERTION, 'saml:SubjectConfirmation');
         $parent->appendChild($result);
 
         $result->setAttribute('Method', $this->getMethod());
 
-        $this->getNameID()->getXml($result, $context);
+        if ($this->getNameID()) {
+            $this->getNameID()->getXml($result, $context);
+        }
 
         $this->getData()->getXml($result, $context);
 

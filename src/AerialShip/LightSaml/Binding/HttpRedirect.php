@@ -18,7 +18,7 @@ class HttpRedirect extends AbstractBinding
      * @param Message $message
      * @return RedirectResponse
      */
-    function send(Message $message)
+    public function send(Message $message)
     {
         $url = $this->getRedirectURL($message);
         $result = new RedirectResponse($url);
@@ -32,7 +32,7 @@ class HttpRedirect extends AbstractBinding
      * @throws \AerialShip\LightSaml\Error\BindingException
      * @return Message
      */
-    function receive(Request $request)
+    public function receive(Request $request)
     {
         $data = $this->parseQuery($request);
         return $this->processData($data);
@@ -49,6 +49,9 @@ class HttpRedirect extends AbstractBinding
         $msg = $this->getMessageStringFromData($data);
         $encoding = $this->getEncodingFromData($data);
         $msg = $this->decodeMessageString($msg, $encoding);
+
+        $this->dispatchReceive($msg);
+
         $message = $this->loadMessageFromXml($msg);
 
         $this->loadRelayState($message, $data);
@@ -182,6 +185,9 @@ class HttpRedirect extends AbstractBinding
         $context = new SerializationContext();
         $message->getXml($context->getDocument(), $context);
         $xml = $context->getDocument()->saveXML();
+
+        $this->dispatchSend($xml);
+
         $xml = gzdeflate($xml);
         $xml = base64_encode($xml);
 

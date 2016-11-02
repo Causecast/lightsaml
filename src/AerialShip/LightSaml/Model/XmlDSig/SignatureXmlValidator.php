@@ -174,7 +174,7 @@ class SignatureXmlValidator extends Signature implements LoadFromXmlInterface, S
         $xpath->registerNamespace('ds', \XMLSecurityDSig::XMLDSIGNS);
 
         $list = $xpath->query('./ds:SignedInfo/ds:SignatureMethod', $this->signature->sigNode);
-        if ($list->length == 0) {
+        if (!$list || $list->length == 0) {
             throw new InvalidXmlException('Missing SignatureMethod element');
         }
         /** @var $sigMethod \DOMElement */
